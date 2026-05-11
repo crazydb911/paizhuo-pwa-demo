@@ -1,0 +1,20 @@
+{
+  "name": "牌桌計分 PWA Demo",
+  "short_name": "牌桌計分",
+  "description": "三種牌局記分與廣告收益節奏的 Web/PWA demo。",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#07110f",
+  "theme_color": "#10201b",
+  "lang": "zh-Hant",
+  "icons": [
+    {
+      "src": "./assets/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
