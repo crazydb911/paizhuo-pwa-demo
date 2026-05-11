@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-labelledby="title desc">
+  <title id="title">牌桌計分</title>
+  <desc id="desc">Dark green playing table app icon with a gold number seven.</desc>
+  <rect width="512" height="512" rx="112" fill="#07110f"/>
+  <path d="M88 112h336v288H88z" rx="32" fill="#10201b"/>
+  <path d="M120 144h272v224H120z" rx="24" fill="#183229"/>
+  <path d="M171 174h170l-84 176h-54l72-134H171z" fill="#d6ad55"/>
+  <circle cx="160" cy="336" r="22" fill="#d85b53"/>
+  <circle cx="352" cy="336" r="22" fill="#65b7a5"/>
+</svg>
