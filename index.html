@@ -1,0 +1,1280 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="theme-color" content="#10201b">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="牌桌計分">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <link rel="manifest" href="./manifest.json">
+  <link rel="icon" href="./assets/icon.svg" type="image/svg+xml">
+  <title>牌桌計分 PWA Demo</title>
+  <style>
+    :root {
+      --felt-950: #07110f;
+      --felt-900: #0c1815;
+      --felt-800: #10201b;
+      --felt-700: #183229;
+      --felt-600: #214539;
+      --ink: #f5f0e5;
+      --muted: rgba(245, 240, 229, 0.68);
+      --line: rgba(245, 240, 229, 0.12);
+      --gold: #d6ad55;
+      --gold-soft: rgba(214, 173, 85, 0.18);
+      --red: #d85b53;
+      --cyan: #65b7a5;
+      --panel: rgba(9, 19, 16, 0.82);
+      --panel-solid: #111d19;
+      --radius: 8px;
+      --shadow-1: 0 8px 22px rgba(0, 0, 0, 0.22);
+      --shadow-2: 0 18px 42px rgba(0, 0, 0, 0.34);
+      --ease: cubic-bezier(0.2, 0.8, 0.2, 1);
+      color-scheme: dark;
+      font-family: "Avenir Next", "PingFang TC", "Noto Sans TC", sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      min-height: 100%;
+      margin: 0;
+      background: var(--felt-950);
+      color: var(--ink);
+    }
+
+    body {
+      overflow-x: hidden;
+    }
+
+    button,
+    input,
+    select {
+      font: inherit;
+    }
+
+    button {
+      min-height: 44px;
+      border: 0;
+      color: inherit;
+      cursor: pointer;
+      touch-action: manipulation;
+    }
+
+    button:disabled {
+      cursor: not-allowed;
+      opacity: 0.48;
+    }
+
+    .app-shell {
+      min-height: 100vh;
+      padding: max(16px, env(safe-area-inset-top)) 16px calc(118px + env(safe-area-inset-bottom));
+      background:
+        radial-gradient(circle at 18% 12%, rgba(214, 173, 85, 0.12), transparent 28%),
+        linear-gradient(135deg, rgba(255, 255, 255, 0.05), transparent 22%),
+        var(--felt-950);
+    }
+
+    .layout {
+      width: min(1180px, 100%);
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: minmax(0, 360px) minmax(0, 1fr);
+      gap: 14px;
+      align-items: start;
+    }
+
+    .side,
+    .table {
+      border: 1px solid var(--line);
+      background: var(--panel);
+      box-shadow: var(--shadow-1);
+      backdrop-filter: blur(16px);
+    }
+
+    .side {
+      border-radius: var(--radius);
+      overflow: hidden;
+      position: sticky;
+      top: 16px;
+    }
+
+    .brand {
+      padding: 16px;
+      display: grid;
+      grid-template-columns: 48px 1fr;
+      gap: 12px;
+      align-items: center;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .mark {
+      width: 48px;
+      height: 48px;
+      border-radius: var(--radius);
+      display: grid;
+      place-items: center;
+      color: var(--gold);
+      background:
+        linear-gradient(145deg, rgba(214, 173, 85, 0.24), rgba(101, 183, 165, 0.12)),
+        var(--felt-800);
+      border: 1px solid rgba(214, 173, 85, 0.3);
+      font-size: 23px;
+      font-weight: 900;
+    }
+
+    h1,
+    h2,
+    h3,
+    p {
+      margin: 0;
+      text-wrap: pretty;
+    }
+
+    h1 {
+      font-size: 1.34rem;
+      line-height: 1.08;
+    }
+
+    .subcopy {
+      margin-top: 5px;
+      color: var(--muted);
+      font-size: 0.86rem;
+      line-height: 1.45;
+    }
+
+    .game-list {
+      display: grid;
+      gap: 10px;
+      padding: 12px;
+    }
+
+    .game-card {
+      display: grid;
+      gap: 10px;
+      width: 100%;
+      padding: 13px;
+      text-align: left;
+      border-radius: var(--radius);
+      background: rgba(255, 255, 255, 0.045);
+      border: 1px solid transparent;
+      transition: transform 180ms var(--ease), border-color 180ms var(--ease), background 180ms var(--ease);
+    }
+
+    .game-card:hover,
+    .game-card:focus-visible {
+      transform: translateY(-1px);
+      border-color: rgba(214, 173, 85, 0.34);
+      background: rgba(255, 255, 255, 0.07);
+      outline: none;
+    }
+
+    .game-card.active {
+      border-color: rgba(214, 173, 85, 0.62);
+      background: linear-gradient(135deg, rgba(214, 173, 85, 0.14), rgba(101, 183, 165, 0.08));
+    }
+
+    .game-top {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .game-symbol {
+      width: 38px;
+      height: 38px;
+      border-radius: var(--radius);
+      display: grid;
+      place-items: center;
+      color: var(--ink);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      background: rgba(0, 0, 0, 0.18);
+      font-weight: 900;
+    }
+
+    .game-name {
+      font-weight: 850;
+      line-height: 1.1;
+    }
+
+    .game-detail {
+      margin-top: 4px;
+      color: var(--muted);
+      font-size: 0.76rem;
+      line-height: 1.35;
+    }
+
+    .pill-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    .pill {
+      min-height: 26px;
+      display: inline-flex;
+      align-items: center;
+      border-radius: var(--radius);
+      padding: 5px 8px;
+      color: rgba(245, 240, 229, 0.8);
+      background: rgba(0, 0, 0, 0.2);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      font-size: 0.72rem;
+      font-weight: 760;
+      white-space: nowrap;
+    }
+
+    .mini-panel {
+      margin: 0 12px 12px;
+      padding: 12px;
+      border-radius: var(--radius);
+      background: rgba(0, 0, 0, 0.18);
+      border: 1px solid var(--line);
+    }
+
+    .mini-panel-title {
+      color: var(--gold);
+      font-size: 0.75rem;
+      font-weight: 850;
+      text-transform: uppercase;
+    }
+
+    .mini-panel p {
+      margin-top: 6px;
+      color: var(--muted);
+      font-size: 0.82rem;
+      line-height: 1.48;
+    }
+
+    .table {
+      min-height: calc(100vh - 32px);
+      border-radius: var(--radius);
+      overflow: hidden;
+    }
+
+    .table-header {
+      min-height: 132px;
+      position: relative;
+      padding: 18px;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 12px;
+      align-items: start;
+      background:
+        linear-gradient(135deg, rgba(214, 173, 85, 0.18), transparent 42%),
+        linear-gradient(170deg, var(--felt-700), var(--felt-900));
+      border-bottom: 1px solid rgba(214, 173, 85, 0.22);
+      isolation: isolate;
+    }
+
+    .table-header::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background-image:
+        linear-gradient(60deg, rgba(255, 255, 255, 0.035) 25%, transparent 25%),
+        linear-gradient(120deg, rgba(0, 0, 0, 0.14) 25%, transparent 25%);
+      background-size: 28px 48px;
+      opacity: 0.42;
+      z-index: -1;
+    }
+
+    .title-stack {
+      display: grid;
+      gap: 8px;
+    }
+
+    .table-kicker {
+      color: var(--gold);
+      font-size: 0.78rem;
+      font-weight: 850;
+      text-transform: uppercase;
+    }
+
+    .table-title {
+      font-size: 2rem;
+      line-height: 1.03;
+      font-weight: 900;
+    }
+
+    .header-actions {
+      display: flex;
+      gap: 8px;
+      justify-content: end;
+      flex-wrap: wrap;
+    }
+
+    .btn {
+      border-radius: var(--radius);
+      padding: 0 12px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 7px;
+      font-weight: 820;
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.11);
+      transition: transform 160ms var(--ease), background 160ms var(--ease), border-color 160ms var(--ease);
+    }
+
+    .btn:hover,
+    .btn:focus-visible {
+      transform: translateY(-1px);
+      background: rgba(255, 255, 255, 0.13);
+      border-color: rgba(255, 255, 255, 0.18);
+      outline: none;
+    }
+
+    .btn.primary {
+      color: #1a1204;
+      background: var(--gold);
+      border-color: rgba(255, 255, 255, 0.18);
+    }
+
+    .btn.danger {
+      color: var(--ink);
+      background: rgba(216, 91, 83, 0.18);
+      border-color: rgba(216, 91, 83, 0.32);
+    }
+
+    .content {
+      display: grid;
+      gap: 14px;
+      padding: 14px;
+    }
+
+    .score-strip {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .player-card {
+      min-height: 132px;
+      border-radius: var(--radius);
+      padding: 12px;
+      display: grid;
+      gap: 9px;
+      align-content: start;
+      background: var(--panel-solid);
+      border: 1px solid var(--line);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .player-card::after {
+      content: attr(data-suit);
+      position: absolute;
+      right: 9px;
+      bottom: -8px;
+      color: rgba(255, 255, 255, 0.045);
+      font-size: 56px;
+      font-weight: 900;
+    }
+
+    .player-name {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.9rem;
+      font-weight: 840;
+      min-width: 0;
+    }
+
+    .name-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 999px;
+      background: var(--gold);
+      flex: 0 0 auto;
+    }
+
+    .score {
+      font-size: 2rem;
+      line-height: 1;
+      font-weight: 900;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .score.positive {
+      color: var(--cyan);
+    }
+
+    .score.negative {
+      color: var(--red);
+    }
+
+    .score-meta {
+      color: var(--muted);
+      font-size: 0.75rem;
+      line-height: 1.35;
+    }
+
+    .workbench {
+      display: grid;
+      grid-template-columns: minmax(0, 1.05fr) minmax(260px, 0.95fr);
+      gap: 14px;
+    }
+
+    .panel {
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: var(--panel-solid);
+      box-shadow: var(--shadow-1);
+      overflow: hidden;
+    }
+
+    .panel-head {
+      min-height: 52px;
+      padding: 12px 14px;
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      align-items: center;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .panel-head h2 {
+      font-size: 1rem;
+      font-weight: 880;
+    }
+
+    .panel-body {
+      padding: 14px;
+    }
+
+    .round-form {
+      display: grid;
+      gap: 12px;
+    }
+
+    .field-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    label.field {
+      display: grid;
+      gap: 6px;
+      min-width: 0;
+    }
+
+    .label-text {
+      color: var(--muted);
+      font-size: 0.78rem;
+      font-weight: 780;
+    }
+
+    input,
+    select {
+      width: 100%;
+      min-height: 44px;
+      border-radius: var(--radius);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      background: rgba(0, 0, 0, 0.24);
+      color: var(--ink);
+      padding: 0 11px;
+      outline: none;
+      transition: border-color 160ms var(--ease), background 160ms var(--ease);
+    }
+
+    input:focus,
+    select:focus {
+      border-color: rgba(214, 173, 85, 0.62);
+      background: rgba(0, 0, 0, 0.34);
+    }
+
+    .actions-row {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    .inline-note {
+      color: var(--muted);
+      font-size: 0.78rem;
+      line-height: 1.4;
+    }
+
+    .ad-slot {
+      min-height: 118px;
+      display: grid;
+      place-items: center;
+      border: 1px dashed rgba(214, 173, 85, 0.44);
+      border-radius: var(--radius);
+      background:
+        repeating-linear-gradient(135deg, rgba(214, 173, 85, 0.08) 0 8px, transparent 8px 16px),
+        rgba(214, 173, 85, 0.06);
+      color: rgba(245, 240, 229, 0.82);
+      text-align: center;
+      padding: 12px;
+    }
+
+    .ad-slot strong {
+      display: block;
+      color: var(--gold);
+      margin-bottom: 4px;
+      font-size: 0.9rem;
+    }
+
+    .ad-slot span {
+      font-size: 0.76rem;
+      line-height: 1.4;
+    }
+
+    .history-list {
+      display: grid;
+      gap: 8px;
+      max-height: 360px;
+      overflow: auto;
+      padding-right: 2px;
+    }
+
+    .round-row {
+      display: grid;
+      grid-template-columns: 56px 1fr auto;
+      gap: 10px;
+      align-items: center;
+      padding: 10px;
+      border-radius: var(--radius);
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 255, 255, 0.07);
+    }
+
+    .round-index {
+      color: var(--gold);
+      font-weight: 880;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .round-summary {
+      color: var(--muted);
+      font-size: 0.78rem;
+      line-height: 1.36;
+    }
+
+    .round-total {
+      font-weight: 880;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .empty-state {
+      min-height: 188px;
+      display: grid;
+      place-items: center;
+      color: var(--muted);
+      text-align: center;
+      padding: 20px;
+    }
+
+    .install-panel {
+      display: none;
+      gap: 10px;
+      align-items: center;
+      justify-content: space-between;
+      margin-top: 12px;
+      padding: 10px;
+      border-radius: var(--radius);
+      border: 1px solid rgba(101, 183, 165, 0.26);
+      background: rgba(101, 183, 165, 0.08);
+    }
+
+    .install-panel.visible {
+      display: flex;
+    }
+
+    .ad-dock {
+      position: fixed;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      z-index: 40;
+      padding: 8px max(12px, env(safe-area-inset-left)) calc(8px + env(safe-area-inset-bottom)) max(12px, env(safe-area-inset-right));
+      background: rgba(7, 17, 15, 0.9);
+      border-top: 1px solid rgba(214, 173, 85, 0.24);
+      backdrop-filter: blur(18px);
+    }
+
+    .ad-dock-inner {
+      width: min(720px, 100%);
+      min-height: 64px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 12px;
+      align-items: center;
+    }
+
+    .dock-meta {
+      min-width: 0;
+    }
+
+    .dock-label {
+      color: var(--gold);
+      font-size: 0.72rem;
+      font-weight: 850;
+      text-transform: uppercase;
+    }
+
+    .dock-copy {
+      margin-top: 4px;
+      font-size: 0.82rem;
+      line-height: 1.35;
+      color: var(--muted);
+    }
+
+    .banner-box {
+      width: 320px;
+      max-width: 44vw;
+      height: 50px;
+      display: grid;
+      place-items: center;
+      border-radius: 6px;
+      color: #221704;
+      background:
+        linear-gradient(90deg, #d6ad55, #f0d590);
+      font-size: 0.78rem;
+      font-weight: 900;
+      box-shadow: 0 8px 20px rgba(214, 173, 85, 0.14);
+    }
+
+    .interstitial {
+      position: fixed;
+      inset: 0;
+      z-index: 80;
+      display: none;
+      place-items: center;
+      padding: 18px;
+      background:
+        radial-gradient(circle at 50% 22%, rgba(214, 173, 85, 0.22), transparent 30%),
+        rgba(3, 6, 5, 0.92);
+    }
+
+    .interstitial.visible {
+      display: grid;
+    }
+
+    .inter-card {
+      width: min(520px, 100%);
+      border-radius: var(--radius);
+      border: 1px solid rgba(214, 173, 85, 0.28);
+      background: linear-gradient(180deg, rgba(24, 50, 41, 0.98), rgba(7, 17, 15, 0.98));
+      box-shadow: var(--shadow-2);
+      padding: 18px;
+      display: grid;
+      gap: 14px;
+      text-align: center;
+      animation: popIn 260ms var(--ease);
+    }
+
+    .inter-card h2 {
+      font-size: 1.45rem;
+      line-height: 1.12;
+    }
+
+    .inter-card p {
+      color: var(--muted);
+      line-height: 1.48;
+    }
+
+    .ad-preview {
+      min-height: 220px;
+      border-radius: var(--radius);
+      display: grid;
+      place-items: center;
+      color: #1d1404;
+      background:
+        linear-gradient(135deg, rgba(255, 255, 255, 0.46), transparent 28%),
+        linear-gradient(160deg, #d6ad55, #65b7a5);
+      font-size: 1.18rem;
+      font-weight: 900;
+    }
+
+    .toast {
+      position: fixed;
+      left: 50%;
+      bottom: calc(96px + env(safe-area-inset-bottom));
+      z-index: 70;
+      width: min(420px, calc(100% - 28px));
+      transform: translateX(-50%) translateY(18px);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 180ms var(--ease), transform 180ms var(--ease);
+      border-radius: var(--radius);
+      border: 1px solid rgba(101, 183, 165, 0.3);
+      background: rgba(7, 17, 15, 0.92);
+      box-shadow: var(--shadow-2);
+      padding: 12px 14px;
+      color: var(--ink);
+      font-size: 0.9rem;
+      line-height: 1.4;
+      text-align: center;
+      backdrop-filter: blur(16px);
+    }
+
+    .toast.visible {
+      transform: translateX(-50%) translateY(0);
+      opacity: 1;
+    }
+
+    @keyframes popIn {
+      from {
+        transform: translateY(16px) scale(0.98);
+        opacity: 0;
+      }
+      to {
+        transform: translateY(0) scale(1);
+        opacity: 1;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *,
+      *::before,
+      *::after {
+        animation-duration: 1ms !important;
+        transition-duration: 1ms !important;
+      }
+    }
+
+    @media (max-width: 980px) {
+      .layout,
+      .workbench {
+        grid-template-columns: 1fr;
+      }
+
+      .side {
+        position: static;
+      }
+
+      .score-strip {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+    }
+
+    @media (max-width: 620px) {
+      .app-shell {
+        padding-left: 10px;
+        padding-right: 10px;
+      }
+
+      .table-header {
+        grid-template-columns: 1fr;
+      }
+
+      .header-actions {
+        justify-content: start;
+      }
+
+      .table-title {
+        font-size: 1.58rem;
+      }
+
+      .score-strip,
+      .field-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .player-card {
+        min-height: 102px;
+      }
+
+      .score {
+        font-size: 1.7rem;
+      }
+
+      .ad-dock-inner {
+        grid-template-columns: 1fr;
+      }
+
+      .banner-box {
+        width: 100%;
+        max-width: none;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="app-shell">
+    <div class="layout">
+      <aside class="side" aria-label="遊戲選擇">
+        <section class="brand">
+          <div class="mark" aria-hidden="true">7</div>
+          <div>
+            <h1>牌桌計分</h1>
+            <p class="subcopy">Web/PWA demo。朋友不用裝 iOS 原生 app，也能先試流程。</p>
+          </div>
+        </section>
+
+        <div class="game-list" id="gameList"></div>
+
+        <section class="mini-panel">
+          <div class="mini-panel-title">收益節奏</div>
+          <p>常駐 banner 保持曝光；每局記完分後依設定展示全屏廣告示意，放在玩家回到牌局的空檔。</p>
+          <div class="install-panel" id="installPanel">
+            <span class="inline-note">可安裝成手機桌面 App。</span>
+            <button class="btn primary" id="installBtn" type="button">安裝</button>
+          </div>
+        </section>
+      </aside>
+
+      <section class="table" aria-live="polite">
+        <header class="table-header">
+          <div class="title-stack">
+            <div class="table-kicker" id="tableKicker">Live scoring</div>
+            <h2 class="table-title" id="tableTitle">撿紅點牌局</h2>
+            <p class="subcopy" id="tableSubtitle">四家固定、原始分數減 60 後乘倍率。</p>
+          </div>
+          <div class="header-actions">
+            <button class="btn" id="simulateBtn" type="button">模擬一局</button>
+            <button class="btn danger" id="resetBtn" type="button">重開</button>
+          </div>
+        </header>
+
+        <div class="content">
+          <section class="score-strip" id="scoreStrip" aria-label="玩家總分"></section>
+
+          <section class="workbench">
+            <div class="panel">
+              <div class="panel-head">
+                <h2 id="entryTitle">第 1 局記分</h2>
+                <span class="pill" id="adPacePill">全屏：每 2 局</span>
+              </div>
+              <div class="panel-body">
+                <form class="round-form" id="roundForm">
+                  <div class="field-grid" id="fieldGrid"></div>
+                  <div class="actions-row">
+                    <button class="btn primary" type="submit">記完本局</button>
+                    <span class="inline-note" id="formHint">Demo 預設會自動平衡總分。</span>
+                  </div>
+                </form>
+              </div>
+            </div>
+
+            <div class="panel">
+              <div class="panel-head">
+                <h2>本場紀錄</h2>
+                <span class="pill" id="roundCountPill">0 局</span>
+              </div>
+              <div class="panel-body">
+                <div class="ad-slot" aria-label="局內固定廣告">
+                  <div>
+                    <strong id="residentAdLabel">撿紅點局內常駐展示</strong>
+                    <span>Demo 廣告位。正式版接 AdMob 或網站廣告平台。</span>
+                  </div>
+                </div>
+                <div class="history-list" id="historyList" style="margin-top: 12px;"></div>
+              </div>
+            </div>
+          </section>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <aside class="ad-dock" aria-label="常駐廣告收益欄">
+    <div class="ad-dock-inner">
+      <div class="dock-meta">
+        <div class="dock-label" id="dockLabel">撿紅點常駐收益欄</div>
+        <div class="dock-copy" id="dockCopy">固定曝光，不擋輸入；正式版可換成 320x50 banner。</div>
+      </div>
+      <div class="banner-box">320 x 50 AD</div>
+    </div>
+  </aside>
+
+  <div class="interstitial" id="interstitial" role="dialog" aria-modal="true" aria-labelledby="interTitle">
+    <div class="inter-card">
+      <div class="ad-preview">全屏廣告位</div>
+      <h2 id="interTitle">回合間收益展示</h2>
+      <p id="interCopy">玩家剛記完分，通常正在重新發牌或整理牌局，這個時機干擾較低。</p>
+      <button class="btn primary" id="closeInterBtn" type="button">返回牌局</button>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <script>
+    const gameSpecs = {
+      jhd: {
+        title: "撿紅點",
+        symbol: "♥",
+        subtitle: "四家固定、原始分數減 60 後乘倍率",
+        players: ["東家", "南家", "西家", "北家"],
+        mode: "單局分差",
+        playerRange: "4 人固定",
+        interstitialEvery: 2,
+        residentAd: "撿紅點局內常駐展示",
+        dockAd: "撿紅點常駐收益欄",
+        hint: "輸入四家原始分，Demo 會用每家 raw - 60 計分。",
+        type: "rawMinus"
+      },
+      bigTwo: {
+        title: "大老二",
+        symbol: "♠",
+        subtitle: "2~4 人、勝者收剩牌懲罰分",
+        players: ["阿明", "小林", "老張", "阿凱"],
+        mode: "剩牌懲罰",
+        playerRange: "2~4 人",
+        interstitialEvery: 2,
+        residentAd: "大老二局內固定展示",
+        dockAd: "大老二常駐收益欄",
+        hint: "選贏家，輸家填剩牌數；Demo 會把懲罰分加給贏家。",
+        type: "winnerPenalty"
+      },
+      paiQi: {
+        title: "牌七",
+        symbol: "♣",
+        subtitle: "3~8 人、剩牌扣分與本局排名",
+        players: ["玩家 1", "玩家 2", "玩家 3", "玩家 4"],
+        mode: "剩牌扣分",
+        playerRange: "3~8 人",
+        interstitialEvery: 2,
+        residentAd: "牌七局內固定展示",
+        dockAd: "牌七常駐收益欄",
+        hint: "選第一名，其他玩家填剩牌點數；Demo 會扣分並給第一名總和。",
+        type: "winnerPenalty"
+      }
+    };
+
+    const suits = ["♥", "♠", "♦", "♣"];
+    const stateKey = "paizhuo-pwa-demo-state-v1";
+    const defaultState = {
+      currentGame: "jhd",
+      multiplier: 1,
+      totals: {},
+      rounds: {},
+      fullscreenShown: 0
+    };
+
+    let appState = loadState();
+    let deferredInstallPrompt = null;
+
+    const el = {
+      gameList: document.getElementById("gameList"),
+      tableKicker: document.getElementById("tableKicker"),
+      tableTitle: document.getElementById("tableTitle"),
+      tableSubtitle: document.getElementById("tableSubtitle"),
+      scoreStrip: document.getElementById("scoreStrip"),
+      entryTitle: document.getElementById("entryTitle"),
+      adPacePill: document.getElementById("adPacePill"),
+      fieldGrid: document.getElementById("fieldGrid"),
+      formHint: document.getElementById("formHint"),
+      residentAdLabel: document.getElementById("residentAdLabel"),
+      historyList: document.getElementById("historyList"),
+      roundCountPill: document.getElementById("roundCountPill"),
+      dockLabel: document.getElementById("dockLabel"),
+      dockCopy: document.getElementById("dockCopy"),
+      roundForm: document.getElementById("roundForm"),
+      resetBtn: document.getElementById("resetBtn"),
+      simulateBtn: document.getElementById("simulateBtn"),
+      interstitial: document.getElementById("interstitial"),
+      closeInterBtn: document.getElementById("closeInterBtn"),
+      toast: document.getElementById("toast"),
+      installPanel: document.getElementById("installPanel"),
+      installBtn: document.getElementById("installBtn")
+    };
+
+    function loadState() {
+      try {
+        const parsed = JSON.parse(localStorage.getItem(stateKey));
+        return { ...defaultState, ...parsed };
+      } catch {
+        return { ...defaultState };
+      }
+    }
+
+    function persist() {
+      localStorage.setItem(stateKey, JSON.stringify(appState));
+    }
+
+    function ensureGameState(gameId) {
+      const spec = gameSpecs[gameId];
+      if (!appState.totals[gameId]) {
+        appState.totals[gameId] = spec.players.map(() => 0);
+      }
+      if (!appState.rounds[gameId]) {
+        appState.rounds[gameId] = [];
+      }
+    }
+
+    function currentSpec() {
+      return gameSpecs[appState.currentGame];
+    }
+
+    function currentRounds() {
+      ensureGameState(appState.currentGame);
+      return appState.rounds[appState.currentGame];
+    }
+
+    function currentTotals() {
+      ensureGameState(appState.currentGame);
+      return appState.totals[appState.currentGame];
+    }
+
+    function render() {
+      ensureGameState(appState.currentGame);
+      renderGames();
+      renderHeader();
+      renderScores();
+      renderForm();
+      renderHistory();
+      persist();
+    }
+
+    function renderGames() {
+      el.gameList.innerHTML = Object.entries(gameSpecs).map(([id, spec]) => {
+        const rounds = appState.rounds[id] || [];
+        const isActive = appState.currentGame === id ? " active" : "";
+        return `
+          <button class="game-card${isActive}" type="button" data-game="${id}">
+            <div class="game-top">
+              <div class="game-symbol">${spec.symbol}</div>
+              <div>
+                <div class="game-name">${spec.title}</div>
+                <div class="game-detail">${spec.subtitle}</div>
+              </div>
+            </div>
+            <div class="pill-row">
+              <span class="pill">${spec.playerRange}</span>
+              <span class="pill">${spec.mode}</span>
+              <span class="pill">全屏每 ${spec.interstitialEvery} 局</span>
+              <span class="pill">${rounds.length} 局</span>
+            </div>
+          </button>
+        `;
+      }).join("");
+
+      el.gameList.querySelectorAll("[data-game]").forEach((button) => {
+        button.addEventListener("click", () => {
+          appState.currentGame = button.dataset.game;
+          render();
+        });
+      });
+    }
+
+    function renderHeader() {
+      const spec = currentSpec();
+      const rounds = currentRounds();
+      el.tableKicker.textContent = `${spec.mode} · ${spec.playerRange}`;
+      el.tableTitle.textContent = `${spec.title}牌局`;
+      el.tableSubtitle.textContent = spec.subtitle;
+      el.entryTitle.textContent = `第 ${rounds.length + 1} 局記分`;
+      el.adPacePill.textContent = `全屏：每 ${spec.interstitialEvery} 局`;
+      el.formHint.textContent = spec.hint;
+      el.residentAdLabel.textContent = spec.residentAd;
+      el.dockLabel.textContent = spec.dockAd;
+      el.dockCopy.textContent = `已展示 ${appState.fullscreenShown} 次全屏示意；常駐 banner 保持曝光。`;
+    }
+
+    function renderScores() {
+      const spec = currentSpec();
+      const totals = currentTotals();
+      const rounds = currentRounds();
+      el.scoreStrip.innerHTML = spec.players.map((name, index) => {
+        const value = totals[index] || 0;
+        const tone = value > 0 ? "positive" : value < 0 ? "negative" : "";
+        const lastDelta = rounds.length ? rounds[rounds.length - 1].delta[index] : 0;
+        const lastText = rounds.length ? `上一局 ${formatScore(lastDelta)}` : "尚未記分";
+        return `
+          <article class="player-card" data-suit="${suits[index % suits.length]}">
+            <div class="player-name"><span class="name-dot"></span><span>${name}</span></div>
+            <div class="score ${tone}">${formatScore(value)}</div>
+            <div class="score-meta">${lastText}<br>總局數 ${rounds.length}</div>
+          </article>
+        `;
+      }).join("");
+    }
+
+    function renderForm() {
+      const spec = currentSpec();
+      if (spec.type === "rawMinus") {
+        el.fieldGrid.innerHTML = spec.players.map((name, index) => `
+          <label class="field">
+            <span class="label-text">${name} 原始分</span>
+            <input inputmode="numeric" name="score-${index}" value="60" aria-label="${name} 原始分">
+          </label>
+        `).join("");
+        return;
+      }
+
+      const winnerOptions = spec.players.map((name, index) => `<option value="${index}">${name}</option>`).join("");
+      el.fieldGrid.innerHTML = `
+        <label class="field">
+          <span class="label-text">本局第一名</span>
+          <select name="winner" aria-label="本局第一名">${winnerOptions}</select>
+        </label>
+        ${spec.players.map((name, index) => `
+          <label class="field">
+            <span class="label-text">${name} 剩牌 / 扣分</span>
+            <input inputmode="numeric" name="penalty-${index}" value="${index === 0 ? 0 : 3}" aria-label="${name} 剩牌或扣分">
+          </label>
+        `).join("")}
+      `;
+    }
+
+    function renderHistory() {
+      const rounds = currentRounds();
+      el.roundCountPill.textContent = `${rounds.length} 局`;
+      if (!rounds.length) {
+        el.historyList.innerHTML = `<div class="empty-state">尚未建立紀錄。先記一局，這裡會顯示回合摘要。</div>`;
+        return;
+      }
+
+      el.historyList.innerHTML = rounds.slice().reverse().map((round) => `
+        <div class="round-row">
+          <div class="round-index">#${round.index}</div>
+          <div class="round-summary">${round.summary}</div>
+          <div class="round-total">${round.delta.map(formatScore).join(" / ")}</div>
+        </div>
+      `).join("");
+    }
+
+    function submitRound(event) {
+      event.preventDefault();
+      const spec = currentSpec();
+      const form = new FormData(el.roundForm);
+      const totals = currentTotals();
+      const rounds = currentRounds();
+      let delta;
+      let summary;
+
+      if (spec.type === "rawMinus") {
+        const raw = spec.players.map((_, index) => parseNumber(form.get(`score-${index}`), 60));
+        delta = raw.map((value) => (value - 60) * appState.multiplier);
+        summary = raw.map((value, index) => `${spec.players[index]} ${value}`).join("、");
+      } else {
+        const winner = parseNumber(form.get("winner"), 0);
+        const penalties = spec.players.map((_, index) => Math.max(0, parseNumber(form.get(`penalty-${index}`), 0)));
+        penalties[winner] = 0;
+        const pool = penalties.reduce((sum, value) => sum + value, 0);
+        delta = penalties.map((value, index) => index === winner ? pool : -value);
+        summary = `${spec.players[winner]} 第一名，收 ${pool} 分`;
+      }
+
+      delta.forEach((value, index) => {
+        totals[index] = (totals[index] || 0) + value;
+      });
+
+      rounds.push({
+        index: rounds.length + 1,
+        delta,
+        summary,
+        at: Date.now()
+      });
+
+      showToast(`第 ${rounds.length} 局已保存`);
+      if (rounds.length % spec.interstitialEvery === 0) {
+        appState.fullscreenShown += 1;
+        showInterstitial();
+      }
+      render();
+    }
+
+    function simulateRound() {
+      const spec = currentSpec();
+      const totals = currentTotals();
+      const rounds = currentRounds();
+      let delta;
+      let summary;
+
+      if (spec.type === "rawMinus") {
+        const seeds = [-18, -6, 9, 15].sort(() => Math.random() - 0.5);
+        delta = seeds;
+        summary = spec.players.map((name, index) => `${name} ${60 + seeds[index]}`).join("、");
+      } else {
+        const winner = Math.floor(Math.random() * spec.players.length);
+        const penalties = spec.players.map((_, index) => index === winner ? 0 : 1 + Math.floor(Math.random() * 8));
+        const pool = penalties.reduce((sum, value) => sum + value, 0);
+        delta = penalties.map((value, index) => index === winner ? pool : -value);
+        summary = `${spec.players[winner]} 第一名，收 ${pool} 分`;
+      }
+
+      delta.forEach((value, index) => {
+        totals[index] = (totals[index] || 0) + value;
+      });
+      rounds.push({
+        index: rounds.length + 1,
+        delta,
+        summary,
+        at: Date.now()
+      });
+      showToast(`已模擬第 ${rounds.length} 局`);
+      if (rounds.length % spec.interstitialEvery === 0) {
+        appState.fullscreenShown += 1;
+        showInterstitial();
+      }
+      render();
+    }
+
+    function resetCurrentGame() {
+      const spec = currentSpec();
+      appState.totals[appState.currentGame] = spec.players.map(() => 0);
+      appState.rounds[appState.currentGame] = [];
+      showToast(`${spec.title}已重開`);
+      render();
+    }
+
+    function formatScore(value) {
+      if (value > 0) return `+${value}`;
+      return String(value);
+    }
+
+    function parseNumber(value, fallback) {
+      const parsed = Number.parseInt(String(value ?? "").trim(), 10);
+      return Number.isFinite(parsed) ? parsed : fallback;
+    }
+
+    function showInterstitial() {
+      el.interstitial.classList.add("visible");
+      el.closeInterBtn.focus({ preventScroll: true });
+    }
+
+    function closeInterstitial() {
+      el.interstitial.classList.remove("visible");
+    }
+
+    let toastTimer = null;
+    function showToast(message) {
+      clearTimeout(toastTimer);
+      el.toast.textContent = message;
+      el.toast.classList.add("visible");
+      toastTimer = setTimeout(() => el.toast.classList.remove("visible"), 1800);
+    }
+
+    el.roundForm.addEventListener("submit", submitRound);
+    el.resetBtn.addEventListener("click", resetCurrentGame);
+    el.simulateBtn.addEventListener("click", simulateRound);
+    el.closeInterBtn.addEventListener("click", closeInterstitial);
+    el.interstitial.addEventListener("click", (event) => {
+      if (event.target === el.interstitial) closeInterstitial();
+    });
+
+    window.addEventListener("beforeinstallprompt", (event) => {
+      event.preventDefault();
+      deferredInstallPrompt = event;
+      el.installPanel.classList.add("visible");
+    });
+
+    el.installBtn.addEventListener("click", async () => {
+      if (!deferredInstallPrompt) return;
+      deferredInstallPrompt.prompt();
+      await deferredInstallPrompt.userChoice;
+      deferredInstallPrompt = null;
+      el.installPanel.classList.remove("visible");
+    });
+
+    if ("serviceWorker" in navigator) {
+      window.addEventListener("load", () => {
+        navigator.serviceWorker.register("./sw.js").catch(() => {});
+      });
+    }
+
+    render();
+  </script>
+</body>
+</html>
