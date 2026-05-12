@@ -1,4 +1,4 @@
-const cacheName = "paizhuo-pwa-demo-v1";
+const cacheName = "paizhuo-pwa-demo-v2";
 const assets = [
   "./",
   "./index.html",
