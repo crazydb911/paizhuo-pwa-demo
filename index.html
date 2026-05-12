@@ -78,6 +78,10 @@
         var(--felt-950);
     }
 
+    body:not([data-view="match"]) .ad-dock {
+      display: none;
+    }
+
     .layout {
       width: min(1180px, 100%);
       margin: 0 auto;
@@ -87,8 +91,28 @@
       align-items: start;
     }
 
+    .app-shell[data-view="home"] .layout {
+      width: min(560px, 100%);
+      grid-template-columns: 1fr;
+    }
+
+    .app-shell[data-view="setup"] .layout,
+    .app-shell[data-view="match"] .layout {
+      grid-template-columns: 1fr;
+    }
+
+    .app-shell[data-view="home"] .table,
+    .app-shell[data-view="home"] .setup-screen,
+    .app-shell[data-view="setup"] .side,
+    .app-shell[data-view="setup"] .table,
+    .app-shell[data-view="match"] .side,
+    .app-shell[data-view="match"] .setup-screen {
+      display: none;
+    }
+
     .side,
-    .table {
+    .table,
+    .setup-screen {
       border: 1px solid var(--line);
       background: var(--panel);
       box-shadow: var(--shadow-1);
@@ -249,10 +273,106 @@
       line-height: 1.48;
     }
 
+    .setup-screen {
+      min-height: calc(100vh - 32px);
+      border-radius: var(--radius);
+      overflow: hidden;
+    }
+
+    .setup-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 0.9fr) minmax(320px, 1.1fr);
+      gap: 14px;
+      padding: 14px;
+    }
+
+    .setup-hero {
+      min-height: 100%;
+      padding: 18px;
+      border-radius: var(--radius);
+      border: 1px solid rgba(214, 173, 85, 0.22);
+      background:
+        linear-gradient(145deg, rgba(214, 173, 85, 0.18), transparent 42%),
+        var(--panel-solid);
+      display: grid;
+      align-content: space-between;
+      gap: 18px;
+    }
+
+    .setup-symbol {
+      width: 74px;
+      height: 74px;
+      display: grid;
+      place-items: center;
+      border-radius: var(--radius);
+      color: var(--gold);
+      background: rgba(0, 0, 0, 0.22);
+      border: 1px solid rgba(214, 173, 85, 0.24);
+      font-size: 2.3rem;
+      font-weight: 900;
+    }
+
+    .setup-title {
+      margin-top: 14px;
+      font-size: 2rem;
+      line-height: 1.08;
+      font-weight: 900;
+    }
+
+    .setup-card {
+      border-radius: var(--radius);
+      background: var(--panel-solid);
+      border: 1px solid var(--line);
+      overflow: hidden;
+    }
+
+    .setup-actions {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-top: 12px;
+    }
+
+    .setup-note {
+      display: grid;
+      gap: 8px;
+      margin-top: 16px;
+    }
+
     .table {
       min-height: calc(100vh - 32px);
       border-radius: var(--radius);
       overflow: hidden;
+      position: relative;
+      isolation: isolate;
+    }
+
+    .table.sweeping::before,
+    .table.sweeping::after {
+      content: "";
+      position: absolute;
+      z-index: 4;
+      left: 50%;
+      top: 126px;
+      width: 70px;
+      height: 98px;
+      border-radius: 7px;
+      border: 1px solid rgba(214, 173, 85, 0.28);
+      background:
+        linear-gradient(135deg, rgba(214, 173, 85, 0.24), transparent 38%),
+        linear-gradient(160deg, var(--felt-700), var(--felt-900));
+      box-shadow: 0 18px 40px rgba(0, 0, 0, 0.32);
+      pointer-events: none;
+      animation: collectCards 720ms var(--ease) forwards;
+    }
+
+    .table.sweeping::before {
+      transform: translate(-220px, 16px) rotate(-14deg);
+    }
+
+    .table.sweeping::after {
+      transform: translate(140px, 22px) rotate(12deg);
+      animation-delay: 70ms;
     }
 
     .table-header {
@@ -363,6 +483,7 @@
       border: 1px solid var(--line);
       position: relative;
       overflow: hidden;
+      transition: transform 220ms var(--ease), border-color 220ms var(--ease), background 220ms var(--ease);
     }
 
     .player-card::after {
@@ -373,6 +494,22 @@
       color: rgba(255, 255, 255, 0.045);
       font-size: 56px;
       font-weight: 900;
+    }
+
+    .player-card.score-win {
+      border-color: rgba(101, 183, 165, 0.48);
+      background:
+        linear-gradient(145deg, rgba(101, 183, 165, 0.12), transparent 42%),
+        var(--panel-solid);
+      animation: scoreLift 640ms var(--ease);
+    }
+
+    .player-card.score-loss {
+      border-color: rgba(216, 91, 83, 0.38);
+      background:
+        linear-gradient(145deg, rgba(216, 91, 83, 0.1), transparent 42%),
+        var(--panel-solid);
+      animation: scorePress 520ms var(--ease);
     }
 
     .player-name {
@@ -505,21 +642,16 @@
       min-height: 118px;
       display: grid;
       place-items: center;
-      border: 1px dashed rgba(214, 173, 85, 0.44);
-      border-radius: var(--radius);
-      background:
-        repeating-linear-gradient(135deg, rgba(214, 173, 85, 0.08) 0 8px, transparent 8px 16px),
-        rgba(214, 173, 85, 0.06);
-      color: rgba(245, 240, 229, 0.82);
+      color: rgba(245, 240, 229, 0.46);
       text-align: center;
       padding: 12px;
     }
 
     .ad-slot strong {
       display: block;
-      color: var(--gold);
+      color: rgba(245, 240, 229, 0.58);
       margin-bottom: 4px;
-      font-size: 0.9rem;
+      font-size: 0.78rem;
     }
 
     .ad-slot span {
@@ -595,8 +727,7 @@
       bottom: 0;
       z-index: 40;
       padding: 8px max(12px, env(safe-area-inset-left)) calc(8px + env(safe-area-inset-bottom)) max(12px, env(safe-area-inset-right));
-      background: rgba(7, 17, 15, 0.9);
-      border-top: 1px solid rgba(214, 173, 85, 0.24);
+      background: rgba(7, 17, 15, 0.82);
       backdrop-filter: blur(18px);
     }
 
@@ -634,13 +765,10 @@
       height: 50px;
       display: grid;
       place-items: center;
-      border-radius: 6px;
-      color: #221704;
-      background:
-        linear-gradient(90deg, #d6ad55, #f0d590);
-      font-size: 0.78rem;
+      color: rgba(245, 240, 229, 0.44);
+      background: rgba(255, 255, 255, 0.05);
+      font-size: 0.72rem;
       font-weight: 900;
-      box-shadow: 0 8px 20px rgba(214, 173, 85, 0.14);
     }
 
     .interstitial {
@@ -684,15 +812,38 @@
 
     .ad-preview {
       min-height: 220px;
-      border-radius: var(--radius);
       display: grid;
       place-items: center;
-      color: #1d1404;
+      color: rgba(245, 240, 229, 0.72);
       background:
-        linear-gradient(135deg, rgba(255, 255, 255, 0.46), transparent 28%),
-        linear-gradient(160deg, #d6ad55, #65b7a5);
-      font-size: 1.18rem;
+        linear-gradient(135deg, rgba(214, 173, 85, 0.12), transparent 32%),
+        rgba(255, 255, 255, 0.045);
+      font-size: 1rem;
       font-weight: 900;
+    }
+
+    .chip-layer {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      z-index: 6;
+      overflow: hidden;
+    }
+
+    .chip {
+      position: absolute;
+      left: var(--from-x);
+      top: var(--from-y);
+      width: 18px;
+      height: 18px;
+      border-radius: 999px;
+      background:
+        radial-gradient(circle at 35% 30%, rgba(255, 255, 255, 0.74), transparent 25%),
+        var(--gold);
+      border: 2px solid rgba(62, 42, 9, 0.62);
+      transform: translate(-50%, -50%);
+      animation: chipFlow 720ms var(--ease) forwards;
+      animation-delay: var(--delay);
     }
 
     .toast {
@@ -733,6 +884,62 @@
       }
     }
 
+    @keyframes collectCards {
+      0% {
+        opacity: 0;
+      }
+      22% {
+        opacity: 1;
+      }
+      100% {
+        opacity: 0;
+        transform: translate(-50%, 34px) rotate(0deg) scale(0.7);
+      }
+    }
+
+    @keyframes scoreLift {
+      0% {
+        transform: translateY(0);
+      }
+      36% {
+        transform: translateY(-7px);
+      }
+      100% {
+        transform: translateY(0);
+      }
+    }
+
+    @keyframes scorePress {
+      0% {
+        transform: translateX(0);
+      }
+      24% {
+        transform: translateX(-3px);
+      }
+      48% {
+        transform: translateX(3px);
+      }
+      100% {
+        transform: translateX(0);
+      }
+    }
+
+    @keyframes chipFlow {
+      0% {
+        opacity: 0;
+        transform: translate(-50%, -50%) scale(0.7);
+      }
+      18% {
+        opacity: 1;
+      }
+      100% {
+        opacity: 0;
+        left: var(--to-x);
+        top: var(--to-y);
+        transform: translate(-50%, -50%) scale(1);
+      }
+    }
+
     @media (prefers-reduced-motion: reduce) {
       *,
       *::before,
@@ -744,7 +951,8 @@
 
     @media (max-width: 980px) {
       .layout,
-      .workbench {
+      .workbench,
+      .setup-grid {
         grid-template-columns: 1fr;
       }
 
@@ -799,8 +1007,8 @@
     }
   </style>
 </head>
-<body>
-  <main class="app-shell">
+<body data-view="home">
+  <main class="app-shell" id="appShell" data-view="home">
     <div class="layout">
       <aside class="side" aria-label="遊戲選擇">
         <section class="brand">
@@ -823,6 +1031,51 @@
         </section>
       </aside>
 
+      <section class="setup-screen" aria-live="polite">
+        <header class="table-header">
+          <div class="title-stack">
+            <div class="table-kicker">開桌設定</div>
+            <h2 class="table-title" id="setupTitle">撿紅點設定</h2>
+            <p class="subcopy" id="setupSubtitle">選好玩家與廣告節奏後再進牌局。</p>
+          </div>
+          <div class="header-actions">
+            <button class="btn" id="setupBackBtn" type="button">返回首頁</button>
+          </div>
+        </header>
+
+        <div class="setup-grid">
+          <section class="setup-hero">
+            <div>
+              <div class="setup-symbol" id="setupSymbol">♥</div>
+              <h2 class="setup-title" id="setupHeroTitle">撿紅點</h2>
+              <p class="subcopy" id="setupHeroCopy">四家固定、原始分數減 60 後乘倍率。</p>
+            </div>
+            <div class="setup-note">
+              <span class="pill" id="setupModePill">單局分差</span>
+              <span class="pill" id="setupAdPill">局內固定廣告保留</span>
+              <span class="pill">記分後收牌換局</span>
+            </div>
+          </section>
+
+          <section class="setup-card">
+            <div class="panel-head">
+              <h2>開局參數</h2>
+              <span class="pill" id="setupPlayerRange">4 人固定</span>
+            </div>
+            <div class="panel-body">
+              <form class="round-form" id="setupForm">
+                <div class="field-grid" id="setupOptions"></div>
+                <div class="field-grid" id="setupPlayers"></div>
+                <div class="setup-actions">
+                  <button class="btn primary" type="submit">開始牌局</button>
+                  <button class="btn" id="setupDemoBtn" type="button">直接模擬一局</button>
+                </div>
+              </form>
+            </div>
+          </section>
+        </div>
+      </section>
+
       <section class="table" aria-live="polite">
         <header class="table-header">
           <div class="title-stack">
@@ -831,6 +1084,7 @@
             <p class="subcopy" id="tableSubtitle">四家固定、原始分數減 60 後乘倍率。</p>
           </div>
           <div class="header-actions">
+            <button class="btn" id="matchHomeBtn" type="button">回首頁</button>
             <button class="btn" id="simulateBtn" type="button">模擬一局</button>
             <button class="btn danger" id="resetBtn" type="button">重開</button>
           </div>
@@ -905,6 +1159,8 @@
         symbol: "♥",
         subtitle: "四家固定、原始分數減 60 後乘倍率",
         players: ["東家", "南家", "西家", "北家"],
+        minPlayers: 4,
+        maxPlayers: 4,
         mode: "單局分差",
         playerRange: "4 人固定",
         interstitialEvery: 2,
@@ -918,6 +1174,8 @@
         symbol: "♠",
         subtitle: "2~4 人、勝者收剩牌懲罰分",
         players: ["阿明", "小林", "老張", "阿凱"],
+        minPlayers: 2,
+        maxPlayers: 4,
         mode: "剩牌懲罰",
         playerRange: "2~4 人",
         interstitialEvery: 2,
@@ -930,7 +1188,9 @@
         title: "牌七",
         symbol: "♣",
         subtitle: "3~8 人、剩牌扣分與本局排名",
-        players: ["玩家 1", "玩家 2", "玩家 3", "玩家 4"],
+        players: ["玩家 1", "玩家 2", "玩家 3", "玩家 4", "玩家 5", "玩家 6", "玩家 7", "玩家 8"],
+        minPlayers: 3,
+        maxPlayers: 8,
         mode: "剩牌扣分",
         playerRange: "3~8 人",
         interstitialEvery: 2,
@@ -944,10 +1204,14 @@
     const suits = ["♥", "♠", "♦", "♣"];
     const stateKey = "paizhuo-pwa-demo-state-v1";
     const defaultState = {
+      view: "home",
       currentGame: "jhd",
       multiplier: 1,
       totals: {},
       rounds: {},
+      playerNames: {},
+      playerCounts: {},
+      adEvery: {},
       fullscreenShown: 0
     };
 
@@ -955,7 +1219,21 @@
     let deferredInstallPrompt = null;
 
     const el = {
+      appShell: document.getElementById("appShell"),
       gameList: document.getElementById("gameList"),
+      setupTitle: document.getElementById("setupTitle"),
+      setupSubtitle: document.getElementById("setupSubtitle"),
+      setupBackBtn: document.getElementById("setupBackBtn"),
+      setupSymbol: document.getElementById("setupSymbol"),
+      setupHeroTitle: document.getElementById("setupHeroTitle"),
+      setupHeroCopy: document.getElementById("setupHeroCopy"),
+      setupModePill: document.getElementById("setupModePill"),
+      setupAdPill: document.getElementById("setupAdPill"),
+      setupPlayerRange: document.getElementById("setupPlayerRange"),
+      setupForm: document.getElementById("setupForm"),
+      setupOptions: document.getElementById("setupOptions"),
+      setupPlayers: document.getElementById("setupPlayers"),
+      setupDemoBtn: document.getElementById("setupDemoBtn"),
       tableKicker: document.getElementById("tableKicker"),
       tableTitle: document.getElementById("tableTitle"),
       tableSubtitle: document.getElementById("tableSubtitle"),
@@ -970,6 +1248,7 @@
       dockLabel: document.getElementById("dockLabel"),
       dockCopy: document.getElementById("dockCopy"),
       roundForm: document.getElementById("roundForm"),
+      matchHomeBtn: document.getElementById("matchHomeBtn"),
       resetBtn: document.getElementById("resetBtn"),
       simulateBtn: document.getElementById("simulateBtn"),
       interstitial: document.getElementById("interstitial"),
@@ -994,16 +1273,47 @@
 
     function ensureGameState(gameId) {
       const spec = gameSpecs[gameId];
+      const names = getPlayerNames(gameId);
       if (!appState.totals[gameId]) {
-        appState.totals[gameId] = spec.players.map(() => 0);
+        appState.totals[gameId] = names.map(() => 0);
       }
       if (!appState.rounds[gameId]) {
         appState.rounds[gameId] = [];
+      }
+      if (appState.totals[gameId].length !== names.length && appState.rounds[gameId].length === 0) {
+        appState.totals[gameId] = names.map(() => 0);
       }
     }
 
     function currentSpec() {
       return gameSpecs[appState.currentGame];
+    }
+
+    function getPlayerCount(gameId) {
+      const spec = gameSpecs[gameId];
+      return Math.min(
+        spec.maxPlayers,
+        Math.max(spec.minPlayers, appState.playerCounts[gameId] || Math.min(4, spec.maxPlayers))
+      );
+    }
+
+    function getPlayerNames(gameId) {
+      const spec = gameSpecs[gameId];
+      const count = getPlayerCount(gameId);
+      const saved = appState.playerNames[gameId] || [];
+      return Array.from({ length: count }, (_, index) => {
+        const fallback = spec.players[index] || `玩家 ${index + 1}`;
+        return String(saved[index] || fallback).trim() || fallback;
+      });
+    }
+
+    function currentPlayerNames() {
+      return getPlayerNames(appState.currentGame);
+    }
+
+    function currentAdEvery() {
+      const spec = currentSpec();
+      return Math.max(1, appState.adEvery[appState.currentGame] || spec.interstitialEvery);
     }
 
     function currentRounds() {
@@ -1018,7 +1328,10 @@
 
     function render() {
       ensureGameState(appState.currentGame);
+      document.body.dataset.view = appState.view;
+      el.appShell.dataset.view = appState.view;
       renderGames();
+      renderSetup();
       renderHeader();
       renderScores();
       renderForm();
@@ -1029,9 +1342,8 @@
     function renderGames() {
       el.gameList.innerHTML = Object.entries(gameSpecs).map(([id, spec]) => {
         const rounds = appState.rounds[id] || [];
-        const isActive = appState.currentGame === id ? " active" : "";
         return `
-          <button class="game-card${isActive}" type="button" data-game="${id}">
+          <button class="game-card" type="button" data-game="${id}">
             <div class="game-top">
               <div class="game-symbol">${spec.symbol}</div>
               <div>
@@ -1052,9 +1364,52 @@
       el.gameList.querySelectorAll("[data-game]").forEach((button) => {
         button.addEventListener("click", () => {
           appState.currentGame = button.dataset.game;
+          appState.view = "setup";
           render();
         });
       });
+    }
+
+    function renderSetup() {
+      const spec = currentSpec();
+      const names = currentPlayerNames();
+      const adEvery = currentAdEvery();
+
+      el.setupTitle.textContent = `${spec.title}設定`;
+      el.setupSubtitle.textContent = "選好玩家與廣告節奏後，直接進入牌局。";
+      el.setupSymbol.textContent = spec.symbol;
+      el.setupHeroTitle.textContent = spec.title;
+      el.setupHeroCopy.textContent = spec.subtitle;
+      el.setupModePill.textContent = spec.mode;
+      el.setupAdPill.textContent = `局內固定廣告保留 · 全屏每 ${adEvery} 局`;
+      el.setupPlayerRange.textContent = spec.playerRange;
+
+      const countOptions = Array.from(
+        { length: spec.maxPlayers - spec.minPlayers + 1 },
+        (_, index) => spec.minPlayers + index
+      ).map((count) => `<option value="${count}" ${count === names.length ? "selected" : ""}>${count} 人</option>`).join("");
+
+      el.setupOptions.innerHTML = `
+        <label class="field">
+          <span class="label-text">玩家人數</span>
+          <select name="playerCount" ${spec.minPlayers === spec.maxPlayers ? "disabled" : ""}>${countOptions}</select>
+        </label>
+        <label class="field">
+          <span class="label-text">全屏廣告節奏</span>
+          <select name="adEvery">
+            <option value="1" ${adEvery === 1 ? "selected" : ""}>每局</option>
+            <option value="2" ${adEvery === 2 ? "selected" : ""}>每 2 局</option>
+            <option value="3" ${adEvery === 3 ? "selected" : ""}>每 3 局</option>
+          </select>
+        </label>
+      `;
+
+      el.setupPlayers.innerHTML = names.map((name, index) => `
+        <label class="field">
+          <span class="label-text">玩家 ${index + 1}</span>
+          <input name="player-${index}" value="${escapeAttribute(name)}" aria-label="玩家 ${index + 1}">
+        </label>
+      `).join("");
     }
 
     function renderHeader() {
@@ -1064,7 +1419,7 @@
       el.tableTitle.textContent = `${spec.title}牌局`;
       el.tableSubtitle.textContent = spec.subtitle;
       el.entryTitle.textContent = `第 ${rounds.length + 1} 局記分`;
-      el.adPacePill.textContent = `全屏：每 ${spec.interstitialEvery} 局`;
+      el.adPacePill.textContent = `全屏：每 ${currentAdEvery()} 局`;
       el.formHint.textContent = spec.hint;
       el.residentAdLabel.textContent = spec.residentAd;
       el.dockLabel.textContent = spec.dockAd;
@@ -1072,16 +1427,16 @@
     }
 
     function renderScores() {
-      const spec = currentSpec();
+      const names = currentPlayerNames();
       const totals = currentTotals();
       const rounds = currentRounds();
-      el.scoreStrip.innerHTML = spec.players.map((name, index) => {
+      el.scoreStrip.innerHTML = names.map((name, index) => {
         const value = totals[index] || 0;
         const tone = value > 0 ? "positive" : value < 0 ? "negative" : "";
         const lastDelta = rounds.length ? rounds[rounds.length - 1].delta[index] : 0;
         const lastText = rounds.length ? `上一局 ${formatScore(lastDelta)}` : "尚未記分";
         return `
-          <article class="player-card" data-suit="${suits[index % suits.length]}">
+          <article class="player-card" data-player-index="${index}" data-suit="${suits[index % suits.length]}">
             <div class="player-name"><span class="name-dot"></span><span>${name}</span></div>
             <div class="score ${tone}">${formatScore(value)}</div>
             <div class="score-meta">${lastText}<br>總局數 ${rounds.length}</div>
@@ -1092,8 +1447,9 @@
 
     function renderForm() {
       const spec = currentSpec();
+      const names = currentPlayerNames();
       if (spec.type === "rawMinus") {
-        el.fieldGrid.innerHTML = spec.players.map((name, index) => `
+        el.fieldGrid.innerHTML = names.map((name, index) => `
           <label class="field">
             <span class="label-text">${name} 原始分</span>
             <input inputmode="numeric" name="score-${index}" value="60" aria-label="${name} 原始分">
@@ -1102,13 +1458,13 @@
         return;
       }
 
-      const winnerOptions = spec.players.map((name, index) => `<option value="${index}">${name}</option>`).join("");
+      const winnerOptions = names.map((name, index) => `<option value="${index}">${name}</option>`).join("");
       el.fieldGrid.innerHTML = `
         <label class="field">
           <span class="label-text">本局第一名</span>
           <select name="winner" aria-label="本局第一名">${winnerOptions}</select>
         </label>
-        ${spec.players.map((name, index) => `
+        ${names.map((name, index) => `
           <label class="field">
             <span class="label-text">${name} 剩牌 / 扣分</span>
             <input inputmode="numeric" name="penalty-${index}" value="${index === 0 ? 0 : 3}" aria-label="${name} 剩牌或扣分">
@@ -1137,6 +1493,7 @@
     function submitRound(event) {
       event.preventDefault();
       const spec = currentSpec();
+      const names = currentPlayerNames();
       const form = new FormData(el.roundForm);
       const totals = currentTotals();
       const rounds = currentRounds();
@@ -1144,16 +1501,16 @@
       let summary;
 
       if (spec.type === "rawMinus") {
-        const raw = spec.players.map((_, index) => parseNumber(form.get(`score-${index}`), 60));
+        const raw = names.map((_, index) => parseNumber(form.get(`score-${index}`), 60));
         delta = raw.map((value) => (value - 60) * appState.multiplier);
-        summary = raw.map((value, index) => `${spec.players[index]} ${value}`).join("、");
+        summary = raw.map((value, index) => `${names[index]} ${value}`).join("、");
       } else {
         const winner = parseNumber(form.get("winner"), 0);
-        const penalties = spec.players.map((_, index) => Math.max(0, parseNumber(form.get(`penalty-${index}`), 0)));
+        const penalties = names.map((_, index) => Math.max(0, parseNumber(form.get(`penalty-${index}`), 0)));
         penalties[winner] = 0;
         const pool = penalties.reduce((sum, value) => sum + value, 0);
         delta = penalties.map((value, index) => index === winner ? pool : -value);
-        summary = `${spec.players[winner]} 第一名，收 ${pool} 分`;
+        summary = `${names[winner]} 第一名，收 ${pool} 分`;
       }
 
       delta.forEach((value, index) => {
@@ -1168,30 +1525,38 @@
       });
 
       showToast(`第 ${rounds.length} 局已保存`);
-      if (rounds.length % spec.interstitialEvery === 0) {
+      const shouldShowAd = rounds.length % currentAdEvery() === 0;
+      if (shouldShowAd) {
         appState.fullscreenShown += 1;
-        showInterstitial();
       }
       render();
+      animateRound(delta, shouldShowAd);
+      persist();
     }
 
     function simulateRound() {
       const spec = currentSpec();
+      const names = currentPlayerNames();
       const totals = currentTotals();
       const rounds = currentRounds();
       let delta;
       let summary;
 
       if (spec.type === "rawMinus") {
-        const seeds = [-18, -6, 9, 15].sort(() => Math.random() - 0.5);
+        const seeds = names.map(() => 0);
+        for (let index = 0; index < names.length - 1; index += 1) {
+          seeds[index] = [-18, -9, -6, 6, 9, 15, 18][Math.floor(Math.random() * 7)];
+        }
+        seeds[names.length - 1] = -seeds.slice(0, -1).reduce((sum, value) => sum + value, 0);
+        seeds.sort(() => Math.random() - 0.5);
         delta = seeds;
-        summary = spec.players.map((name, index) => `${name} ${60 + seeds[index]}`).join("、");
+        summary = names.map((name, index) => `${name} ${60 + seeds[index]}`).join("、");
       } else {
-        const winner = Math.floor(Math.random() * spec.players.length);
-        const penalties = spec.players.map((_, index) => index === winner ? 0 : 1 + Math.floor(Math.random() * 8));
+        const winner = Math.floor(Math.random() * names.length);
+        const penalties = names.map((_, index) => index === winner ? 0 : 1 + Math.floor(Math.random() * 8));
         const pool = penalties.reduce((sum, value) => sum + value, 0);
         delta = penalties.map((value, index) => index === winner ? pool : -value);
-        summary = `${spec.players[winner]} 第一名，收 ${pool} 分`;
+        summary = `${names[winner]} 第一名，收 ${pool} 分`;
       }
 
       delta.forEach((value, index) => {
@@ -1204,19 +1569,114 @@
         at: Date.now()
       });
       showToast(`已模擬第 ${rounds.length} 局`);
-      if (rounds.length % spec.interstitialEvery === 0) {
+      const shouldShowAd = rounds.length % currentAdEvery() === 0;
+      if (shouldShowAd) {
         appState.fullscreenShown += 1;
-        showInterstitial();
       }
       render();
+      animateRound(delta, shouldShowAd);
+      persist();
     }
 
     function resetCurrentGame() {
       const spec = currentSpec();
-      appState.totals[appState.currentGame] = spec.players.map(() => 0);
+      appState.totals[appState.currentGame] = currentPlayerNames().map(() => 0);
       appState.rounds[appState.currentGame] = [];
       showToast(`${spec.title}已重開`);
       render();
+    }
+
+    function goHome() {
+      appState.view = "home";
+      render();
+    }
+
+    function startMatchFromSetup(event) {
+      event.preventDefault();
+      applySetupForm();
+      appState.totals[appState.currentGame] = currentPlayerNames().map(() => 0);
+      appState.rounds[appState.currentGame] = [];
+      appState.view = "match";
+      showToast(`${currentSpec().title}已開桌`);
+      render();
+    }
+
+    function applySetupForm() {
+      const spec = currentSpec();
+      const data = new FormData(el.setupForm);
+      const count = Math.min(
+        spec.maxPlayers,
+        Math.max(spec.minPlayers, parseNumber(data.get("playerCount"), getPlayerCount(appState.currentGame)))
+      );
+      appState.playerCounts[appState.currentGame] = count;
+      appState.adEvery[appState.currentGame] = parseNumber(data.get("adEvery"), spec.interstitialEvery);
+      appState.playerNames[appState.currentGame] = Array.from({ length: count }, (_, index) => {
+        const fallback = spec.players[index] || `玩家 ${index + 1}`;
+        return String(data.get(`player-${index}`) || fallback).trim() || fallback;
+      });
+    }
+
+    function previewPlayerCountChange() {
+      const spec = currentSpec();
+      const data = new FormData(el.setupForm);
+      const count = Math.min(
+        spec.maxPlayers,
+        Math.max(spec.minPlayers, parseNumber(data.get("playerCount"), getPlayerCount(appState.currentGame)))
+      );
+      appState.playerCounts[appState.currentGame] = count;
+      const existing = appState.playerNames[appState.currentGame] || [];
+      appState.playerNames[appState.currentGame] = Array.from({ length: count }, (_, index) => existing[index] || spec.players[index] || `玩家 ${index + 1}`);
+      render();
+    }
+
+    function animateRound(delta, showAdAfter) {
+      const table = document.querySelector(".table");
+      table.classList.add("sweeping");
+      window.setTimeout(() => table.classList.remove("sweeping"), 820);
+
+      const winnerIndex = delta.reduce((best, value, index) => value > delta[best] ? index : best, 0);
+      document.querySelectorAll(".player-card").forEach((card) => {
+        const index = Number(card.dataset.playerIndex);
+        const tone = delta[index] >= 0 ? "score-win" : "score-loss";
+        card.classList.add(tone);
+        window.setTimeout(() => card.classList.remove("score-win", "score-loss"), 760);
+      });
+      flowChipsToWinner(winnerIndex);
+      if (showAdAfter) {
+        window.setTimeout(showInterstitial, 760);
+      }
+    }
+
+    function flowChipsToWinner(winnerIndex) {
+      const table = document.querySelector(".table");
+      const cards = Array.from(document.querySelectorAll(".player-card"));
+      const target = cards[winnerIndex];
+      if (!target) return;
+
+      const tableRect = table.getBoundingClientRect();
+      const targetRect = target.getBoundingClientRect();
+      const toX = `${targetRect.left - tableRect.left + targetRect.width / 2}px`;
+      const toY = `${targetRect.top - tableRect.top + targetRect.height / 2}px`;
+      const layer = document.createElement("div");
+      layer.className = "chip-layer";
+      table.appendChild(layer);
+
+      cards.forEach((card, index) => {
+        if (index === winnerIndex) return;
+        const rect = card.getBoundingClientRect();
+        for (let chipIndex = 0; chipIndex < 2; chipIndex += 1) {
+          const chip = document.createElement("span");
+          chip.className = "chip";
+          chip.style.setProperty("--from-x", `${rect.left - tableRect.left + rect.width / 2 + (chipIndex * 10 - 5)}px`);
+          chip.style.setProperty("--from-y", `${rect.top - tableRect.top + rect.height / 2 + (chipIndex * 6 - 3)}px`);
+          chip.style.setProperty("--to-x", toX);
+          chip.style.setProperty("--to-y", toY);
+          chip.style.setProperty("--delay", `${chipIndex * 65 + index * 30}ms`);
+          layer.appendChild(chip);
+        }
+      });
+
+      window.setTimeout(() => layer.remove(), 1100);
     }
 
     function formatScore(value) {
@@ -1227,6 +1687,14 @@
     function parseNumber(value, fallback) {
       const parsed = Number.parseInt(String(value ?? "").trim(), 10);
       return Number.isFinite(parsed) ? parsed : fallback;
+    }
+
+    function escapeAttribute(value) {
+      return String(value)
+        .replace(/&/g, "&amp;")
+        .replace(/"/g, "&quot;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;");
     }
 
     function showInterstitial() {
@@ -1246,7 +1714,23 @@
       toastTimer = setTimeout(() => el.toast.classList.remove("visible"), 1800);
     }
 
+    el.setupForm.addEventListener("submit", startMatchFromSetup);
+    el.setupBackBtn.addEventListener("click", goHome);
+    el.setupDemoBtn.addEventListener("click", () => {
+      applySetupForm();
+      appState.totals[appState.currentGame] = currentPlayerNames().map(() => 0);
+      appState.rounds[appState.currentGame] = [];
+      appState.view = "match";
+      render();
+      simulateRound();
+    });
+    el.setupOptions.addEventListener("change", (event) => {
+      if (event.target.name === "playerCount") {
+        previewPlayerCountChange();
+      }
+    });
     el.roundForm.addEventListener("submit", submitRound);
+    el.matchHomeBtn.addEventListener("click", goHome);
     el.resetBtn.addEventListener("click", resetCurrentGame);
     el.simulateBtn.addEventListener("click", simulateRound);
     el.closeInterBtn.addEventListener("click", closeInterstitial);
